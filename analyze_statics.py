@@ -3,15 +3,8 @@ import time
 import json
 import os
 
-# MobSF 서버 주소 및 API 키
-MOBSF_URL = 'http://127.0.0.1:8000'
-API_KEY = '1e5543d64291bcfd6b53f5c2df0c7cd0357525376cede31f1d343dcb57c363d1'
-
-# 요청 헤더 설정
-HEADERS = {
-    'Authorization': API_KEY
-}
-
+#config.py에서 설정값 불러오기
+from config import MOBSF_URL, MOBSF_API_KEY, HEADERS, APK_PATH
 
 def upload_apk(file_path):
     """APK 파일을 MobSF 서버에 업로드"""
@@ -72,27 +65,25 @@ def parse_report(report):
 
 
 def main():
-    apk_path = './sample.apk'  # 분석할 APK 경로
-
-    # 1. APK 업로드
-    upload_response = upload_apk(apk_path)
+    #1. APK 업로드
+    upload_response = upload_apk(APK_PATH)
     if 'hash' not in upload_response:
         print("[!] 업로드 실패: 'hash' 값이 응답에 없습니다.")
         return
 
-    # 2. 정적 분석 요청
+    #2. 정적 분석 요청
     scan_response = scan_apk(upload_response)
 
-    # 3. 분석 대기 (MobSF가 아직 준비 중일 수 있으므로 약간 대기)
+    #3. 분석 대기
     time.sleep(3)
 
-    # 4. 분석 보고서 가져오기
+    #4. 보고서 가져오기
     report = get_report(upload_response['hash'])
 
-    # 5. 주요 항목 요약 출력
+    #5. 요약 출력
     parse_report(report)
 
-    # 6. JSON 파일로 저장
+    #6. 저장
     with open('static_report.json', 'w', encoding='utf-8') as f:
         json.dump(report, f, indent=4, ensure_ascii=False)
         print("[+] 분석 결과가 'static_report.json'에 저장되었습니다.")
